@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from app.database import Base, engine
 
 from app.routes.users import router as user_router
@@ -8,6 +7,7 @@ from app.routes.products import router as product_router
 from app.routes.reviews import router as review_router
 from app.routes.auth import router as auth_router
 from app.routes.dashboard import router as dashboard_router
+from app.routes.upload import router as upload_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,11 +31,6 @@ app.add_middleware(
 
 
 
-app.mount(
-    "/uploads",
-    StaticFiles(directory="uploads"),
-    name="uploads",
-)
 
 @app.get("/")
 def home():
@@ -46,3 +41,4 @@ app.include_router(user_router)
 app.include_router(product_router)
 app.include_router(review_router)
 app.include_router(dashboard_router)
+app.include_router(upload_router)

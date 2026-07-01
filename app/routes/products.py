@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas import ProductDetails
 from app.database import get_db
@@ -7,8 +7,6 @@ from app.dependencies import get_current_admin
 from app import schemas
 from app import models
 
-import os
-import shutil
 
 router = APIRouter(
     prefix="/api/products",
@@ -47,29 +45,10 @@ def get_product(
 
 @router.post("/")
 def create_product(
-    title: str = Form(...),
-    description: str = Form(...),
-    image: UploadFile = File(...),
+    product: schemas.ProductCreate,
     db: Session = Depends(get_db),
     current_admin=Depends(get_current_admin),
 ):
-
-    os.makedirs("uploads", exist_ok=True)
-
-    filename = image.filename
-    filepath = f"uploads/{filename}"
-
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
-
-    image_url = f"/uploads/{filename}"
-
-    product = schemas.ProductCreate(
-        title=title,
-        description=description,
-        image_url=image_url,
-    )
-
     return crud.create_product(db, product)
 
 
@@ -94,9 +73,7 @@ def delete_product(
 @router.put("/{product_id}")
 def update_product(
     product_id: int,
-    title: str = Form(...),
-    description: str = Form(...),
-    image: UploadFile | None = File(None),
+    product: schemas.ProductCreate,
     db: Session = Depends(get_db),
     current_admin=Depends(get_current_admin),
 ):
@@ -112,27 +89,6 @@ def update_product(
             status_code=404,
             detail="Product not found"
         )
-
-    image_url = db_product.image_url
-
-    if image:
-
-        os.makedirs("uploads", exist_ok=True)
-
-        filename = image.filename
-
-        filepath = f"uploads/{filename}"
-
-        with open(filepath, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-
-        image_url = f"/uploads/{filename}"
-
-    product = schemas.ProductCreate(
-        title=title,
-        description=description,
-        image_url=image_url,
-    )
 
     return crud.update_product(
         db,
