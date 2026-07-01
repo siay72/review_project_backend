@@ -1,32 +1,36 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import DateTime
-from sqlalchemy import ForeignKey
-from sqlalchemy import Text
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Text,
+)
 from sqlalchemy.orm import relationship
-from datetime import datetime
-
 from app.database import Base
-
+from datetime import datetime, UTC
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    name = Column(String(100), nullable=False)
+    name = Column(String, nullable=False)
 
-    email = Column(String(100), unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    hashed_password = Column(String, nullable=False)
+
+    is_admin = Column(Boolean, default=False)
+
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     reviews = relationship(
         "Review",
         back_populates="user",
         cascade="all, delete"
     )
-
 
 class Product(Base):
     __tablename__ = "products"
